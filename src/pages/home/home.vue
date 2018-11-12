@@ -6,9 +6,6 @@
         />
 
         <section class="content">
-            <div>
-                {{1000000000|price(2,2)}}
-            </div>
             <el-carousel height="300px">
                 <el-carousel-item v-for="item in 4" :key="item">
                     <a class="imgWrap">
