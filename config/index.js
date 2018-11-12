@@ -1,15 +1,19 @@
 // see http://vuejs-templates.github.io/webpack for documentation.
-var path = require('path')
+var path = require('path');
+var proxyJson={
+    dev:'http://ih.dev.aijk.net',
+    test:'http://ih2.test.aijk.net',
+};
 
 module.exports = {
   build: {
     env: {
         NODE_ENV: '"production"'
     },
-    index: path.resolve(__dirname, '../mo/index.html'),
-    assetsRoot: path.resolve(__dirname, '../mo'),
+    index: path.resolve(__dirname, '../dist/index.html'),
+    assetsRoot: path.resolve(__dirname, '../dist'),
     assetsSubDirectory: 'static',
-    assetsPublicPath: './',  
+    assetsPublicPath: './',
     productionSourceMap: false,
     // Gzip off by default as many popular static hosts such as
     // Surge or Netlify already gzip all static assets for you.
@@ -27,13 +31,13 @@ module.exports = {
     env: {
         NODE_ENV: '"development"'
     },
-    port: 8080,
+    port: parseInt(Math.random()*65536),
     autoOpenBrowser: true,
     assetsSubDirectory: 'static',
     assetsPublicPath: '/',
     proxyTable: {
         '/api': {
-            target: 'https://test.muyouche.com/', 
+            target: proxyJson.test,
             changeOrigin: true,
             pathRewrite: {
               '^/api': ''

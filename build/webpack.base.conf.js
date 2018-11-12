@@ -26,14 +26,15 @@ var webpackConfig = {
     alias: {
       'vue$': 'vue/dist/vue.esm.js',
       '@': resolve('src'),
-	    'src': path.resolve(__dirname, '../src'),
-      'assets': path.resolve(__dirname, '../src/assets'),
-      'components': path.resolve(__dirname, '../src/components'),
-	    'pages': path.resolve(__dirname, '../src/pages'),
-	    'service': path.resolve(__dirname, '../src/service'),
-	    'store': path.resolve(__dirname, '../src/store'),
-      'css': path.resolve(__dirname, '../src/css'),
-      'js': path.resolve(__dirname, '../src/js'),
+      'config': resolve('config'),
+      'src': resolve('src'),
+      'components': resolve('src/components'),
+      'pages': resolve('src/pages'),
+      'services': resolve('src/services'),
+      'store': resolve('src/store'),
+      'images': resolve('src/images'),
+      'css': resolve('src/css'),
+      'js': resolve('src/js'),
     }
   },
   module: {
@@ -50,11 +51,11 @@ var webpackConfig = {
       },
       {
         test: /\.css$/,
-        loader: 'style-loader!css-loader', 
-        include: [  
-          /src/,//表示在src目录下的css需要编译  
-          '/node_modules/element-ui/lib/'   //增加此项  
-        ], 
+        loader: 'style-loader!css-loader',
+        include: [
+          /src/,//表示在src目录下的css需要编译
+          '/node_modules/element-ui/lib/'   //增加此项
+        ],
       },
       {
         test: /\.(png|jpe?g|gif|svg)(\?.*)?$/,
@@ -76,6 +77,4 @@ var webpackConfig = {
   }
 }
 
-module.exports = vuxLoader.merge(webpackConfig, {
-  plugins: ['vux-ui']
-})
+module.exports = webpackConfig

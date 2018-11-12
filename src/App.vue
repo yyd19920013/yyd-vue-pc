@@ -1,41 +1,46 @@
 <template>
-  <div class="App">	
-	<transition name="router-fade" mode="out-in">
-		<router-view></router-view>	
-	</transition>
-	<footer1></footer1>
-	<div id="goTop"></div>	
+  <div class="App">
+    <transition name="router-fade" mode="out-in">
+        <router-view></router-view>
+    </transition>
+
+    <loading
+        :showLoading="isLoading"
+        :showRefreshBt="showRefreshBt"
+        :status="status"
+    />
   </div>
 </template>
 
 <script>
-	import { Loading } from 'vux';
-	import { mapState } from 'vuex';
-	import { goTop } from 'js/yydjs.js';
+    import loading from 'components/common/loading';
+    import {mapState} from 'vuex';
 
-	export default {
-		computed:{
-			...mapState({
-		      isLoading: state => state.isLoading,
-		    })
-		},
-		mounted(){
-			//回到顶部
-			goTop(document.getElementById('goTop'));
+    export default {
+        computed:{
+            ...mapState({
+                isLoading(state){
+                    return state.isLoading;
+                },
+                showRefreshBt(state){
+                    return state.showRefreshBt;
+                },
+                status(state){
+                    return state.status;
+                },
+            })
+        },
 
-			let loading=this.$loading({
-				text:'努力加载中',
-			});
-			if(!this.isLoading){
-				this.$nextTick(() => { // 以服务的方式调用的 Loading 需要异步关闭
-					loading.close();
-				});
-			}
-		},
-		components:{Loading} 
-	}
+        mounted(){
+
+        },
+
+        components:{
+            loading,
+        },
+    }
 </script>
 
 <style>
-	@import './css/yydCommon.css';   	
+    @import '~css/index.css';
 </style>

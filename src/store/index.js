@@ -7,14 +7,16 @@ import actions from './actions';
 
 Vue.use(Vuex);
 
-const state = {
-	isLoading:false,//当前加载状态
-	userInfo:null,//用户信息
+const state={
+    isLoading:false,//遮罩是否显示loading
+    showRefreshBt:false,//遮罩是否显示刷新按钮
+    status:'',//服务器错误状态
+    userInfo:{},//用户信息
 }
 
 export default new Vuex.Store({
-	state,
-	getters,
-	actions,
-	mutations,
+    state,
+    getters,
+    actions,
+    mutations,
 })
