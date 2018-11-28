@@ -3301,6 +3301,8 @@ function axiosWrap(option){
 
                     if(data.code==200){
                         option.success&&option.success(data);
+                    }else if(data.code==505){
+                        nativeApi.toPerfectInfo();
                     }else{
                         if(!option.noHint){
                             if(data.msg){
@@ -3320,13 +3322,12 @@ function axiosWrap(option){
                 if(error.response){
                     var hint=true;
 
-                    for(var i=0;i<noLoginStatus.length;i++){
-                        if(error.response.status==noLoginStatus[i]){
-                            hint=false;
-                            if(!option.noToLogin){
-                                nativeApi.toLogin();
-                            }
-                            break;
+                    if(noLoginStatus.indexOf(error.response.status)!=-1){
+                        hint=false;
+                        if(option.headers['X-Access-Token']){
+                            nativeApi.tokenError();
+                        }else if(!option.noToLogin){
+                            nativeApi.toLogin();
                         }
                     }
 
@@ -3378,7 +3379,7 @@ function axiosWrap(option){
                     return item!=200;
                 });
                 codeFail=codeArr.filter(function(item,index){
-                    return item!=0;
+                    return item!=200;
                 });
 
                 all.fail&&all.fail(statusFail,codeFail);
@@ -3388,6 +3389,8 @@ function axiosWrap(option){
 
                     if(codeFail&&codeFail.length==0){
                         all.success&&all.success.apply(null,dataArr);
+                    }else if(codeFail.indexOf(505)!=-1){
+                        nativeApi.toPerfectInfo();
                     }else{
                         if(!all.noHint){
                             alerts('请求代码错误');
@@ -3404,11 +3407,12 @@ function axiosWrap(option){
             if(error.response){
                 var hint=true;
 
-                for(var i=0;i<noLoginStatus.length;i++){
-                    if(error.response.status==noLoginStatus[i]){
-                        hint=false;
+                if(noLoginStatus.indexOf(error.response.status)!=-1){
+                    hint=false;
+                    if(option.headers['X-Access-Token']){
+                        nativeApi.tokenError();
+                    }else if(!option.noToLogin){
                         nativeApi.toLogin();
-                        break;
                     }
                 }
 
