@@ -2899,38 +2899,82 @@ function preload(arr,endFn){
     }
 };
 
-//ajax
-//ajax({//示例
-//  url:'',
-//  type:'post',
-//  data:'',
-//  closeToForm:false,
-//  dataType:'json',
-//  headers:{},
-//  xhr:function(xhr){
-//      console.log(xhr);
-//  },
-//  progress:function(ev){
-//      console.log(ev);
-//  },
-//  success:function(data){
-//      console.log(data);
-//  },
-//  error:function(data){
-//      console.log(data);
-//  },
-//});
-function ajax(json){
+//ajax包装
+//支持回调函数和promise两种风格
+/*
+    参数：
+    ajaxWrap({
+        url:'',//请求地址
+        type:'post',//请求方法
+        data:'',//请求传参
+        contentType:'',//设置请求头contentType
+        closeToForm:false,//关闭json转form格式
+        dataType:'json',//返回数据类型
+        headers:{},//请求头设置
+        getXhr:function(xhr){//获取xhr对象的函数
+            console.log(xhr);
+        },
+        progress:function(ev){//上传文件时触发的函数
+            console.log(ev);
+        },
+        success:function(res){//请求状态成功且code成功的回调
+            console.log(res);
+        },
+        finally:function(data){//请求状态成功的回调，promise模式在catch里捕获
+            console.log(data);
+        },
+        error:function(error){//请求状态错误的回调
+            console.log(error);
+        },
+    });
+*/
+/*
+    例子：
+    回调函数风格：
+    ajaxWrap({
+        code:0,
+        url:'https://www.muyouche.com/action2/HomePageInfo.ashx',
+        type:'post',
+        success:function(res){
+            console.log(res);
+        },
+    });
+
+    promise风格：
+    ajaxWrap({
+        code:0,
+        url:'https://www.muyouche.com/action2/HomePageInfo.ashx',
+        type:'post',
+    }).then((res)=>{
+        console.log(res);
+    });
+*/
+function ajaxWrap(config){
     var str='';
+    var errorPromise={
+        then:function(){
+            console.error('这是一个无效的then函数，如果要使用promise方式，不要在config对象里配置success、error、finally函数');
+            return this;
+        },
+        catch:function(){
+            console.error('这是一个无效的catch函数，如果要使用promise方式，不要在config对象里配置success、error、finally函数');
+            return this;
+        },
+        finally:function(){
+            console.error('这是一个无效的finally函数，如果要使用promise方式，不要在config对象里配置success、error、finally函数');
+            return this;
+        },
+    };
 
-    json.type=json.type.toLowerCase()||'get';
-    json.dataType=json.dataType.toLowerCase()||'json';
+    config.type=config.type?config.type.toLowerCase():'get';
+    config.dataType=config.dataType?config.dataType.toLowerCase():'json';
+    config.code=config.code||config.code==0?config.code:200;
 
-    if(!json.closeToForm&&json.data&&Type(json.data)=='object'){
-        for(var attr in json.data){
-            str+=attr+'='+json.data[attr]+'&';
+    if(!config.closeToForm&&config.data&&Type(config.data)=='object'){
+        for(var attr in config.data){
+            str+=attr+'='+config.data[attr]+'&';
         }
-        json.data=str.substring(0,str.length-1);
+        config.data=str.substring(0,str.length-1);
     }
 
     var xhr=null;
@@ -2938,43 +2982,42 @@ function ajax(json){
     try{
         xhr=new XMLHttpRequest();
     }catch(e){
-        xhr=new window.ActiveXObject('Microsoft.XMLHTTP');
+        xhr=new ActiveXObject('Microsoft.XMLHTTP');
     }
 
-    if(json.xhr&&Type(json.xhr)=='function'){
-        xhr=json.xhr(xhr);
+    if(config.getXhr&&Type(config.getXhr)=='function'){
+        xhr=config.getXhr(xhr);
     }
 
-    if(xhr.upload&&json.progress&&Type(json.progress)=='function'){
-        bind(xhr.upload,'progress',json.progress);
+    if(xhr.upload&&config.progress&&Type(config.progress)=='function'){
+        bind(xhr.upload,'progress',config.progress);
     }
 
-    if(json.type=='get'&&json.data){
-        json.url+='?'+json.data;
+    if(config.type=='get'&&config.data){
+        config.url+='?'+config.data;
     }
 
-    xhr.open(json.type,json.url,true);
+    xhr.open(config.type,config.url,true);
 
-    if(json.type=='get'){
+    if(config.type=='get'){
         xhr.send();
     }else{
-        if(!json.closeToForm)xhr.setRequestHeader('content-type','application/x-www-form-urlencoded');
-        if(json.headers&&Type(json.headers)=='object'){
-            for(var attr in json.headers){
-                xhr.setRequestHeader(attr,json.headers[attr]);
+        if(!config.closeToForm)xhr.setRequestHeader('content-type','application/x-www-form-urlencoded');
+        if(config.headers&&Type(config.headers)=='object'){
+            for(var attr in config.headers){
+                xhr.setRequestHeader(attr,config.headers[attr]);
             }
         }
-        xhr.send(json.data);
+        xhr.send(config.data);
     }
 
-    json.before&&Type(json.before)=='function'&&json.before(xhr);
-    xhr.onreadystatechange=function(){
+    function onreadystatechangeFn(resolve,reject){
         var data=null;
 
         if(xhr.readyState==4){
             if(xhr.status==200){
                 try{
-                    switch(json.dataType){
+                    switch(config.dataType){
                         case 'text':
                                 data=xhr.responseText;
                             break;
@@ -2997,17 +3040,52 @@ function ajax(json){
                                 data=oScript;
                             break;
                     }
-
                 }catch(e){
                     console.log(e);
                 }
-                json.after&&Type(json.after)=='function'&&json.after(xhr,data);
-                json.success&&Type(json.success)=='function'&&json.success(data);
+
+                config.finally&&config.finally(data);
+                if(data.code==config.code){
+                    if(resolve&&(Type(resolve)=='function')){
+                        return resolve(data);
+                    }else{
+                        config.success&&config.success(data);
+                    }
+                }else{
+                    if(!config.noHint){
+                        if(data.msg){
+                            alerts(data.msg);
+                        }else{
+                            alerts('请求代码错误');
+                        }
+                    }
+
+                    if(reject&&(Type(reject)=='function')){
+                        return reject(data);
+                    }
+                }
             }else{
-                json.error&&Type(json.error)=='function'&&json.error(xhr.status);
+                alerts('网络异常'+xhr.status);
+                if(reject&&(Type(reject)=='function')){
+                    return reject(xhr.status);
+                }else{
+                    config.error&&config.error(xhr.status);
+                }
             }
         }
     };
+
+    if(config.success||config.finally||config.error){
+        xhr.onreadystatechange=onreadystatechangeFn;
+
+        return errorPromise;
+    }else{
+        return new Promise(function(resolve,reject){
+            xhr.onreadystatechange=function(){
+                onreadystatechangeFn(resolve,reject);
+            };
+        });
+    }
 };
 
 //传入日期和当前日期的差
@@ -3207,34 +3285,122 @@ function computed(num1,operator,num2){
 };
 
 //axios包装
+//支持回调函数和promise两种风格
 //success（状态200执行回调函数）
 //error（状态不为200的回调函数）
 //finally（不管状态为什么都走的回调函数）
 //all（多个axios请求，也可以使用axios.all）
 /*
+    参数：
+    axiosWrap({
+        url:'',//请求地址
+        method:'post',//请求方法
+        params:'',//请求传参
+        responseType:'json',//返回数据类型
+        headers:{},//请求头设置
+        timeout:5000,//请求超时设置
+        onUploadProgress:function(ev){//上传文件时触发的函数
+            console.log(ev);
+        },
+        onDownloadProgress:function(ev){//下载文件时触发的函数
+            console.log(ev);
+        },
+        success:function(res){//请求状态成功且code成功的回调
+            console.log(res);
+        },
+        finally:function(data){//请求状态成功的回调，promise模式在catch里捕获
+            console.log(data);
+        },
+        error:function(error){//请求状态错误的回调
+            console.log(error);
+        },
+    });
+*/
+/*
+    例子：
+    单个请求：
+    回调函数风格：
+    axiosWrap({
+        code:0,
+        url:'https://www.muyouche.com/action2/HomePageInfo.ashx',
+        method:'post',
+        success(res){
+            console.log(res);
+        },
+    });
+
+    promise风格：
+    axiosWrap({
+        code:0,
+        url:'https://www.muyouche.com/action2/HomePageInfo.ashx',
+        method:'post',
+    }).then((res)=>{
+        console.log(res);
+    });
+
+
+    并发请求：
+    回调函数风格：
     axiosWrap({
         all:{
             apis:[//所有api配置
                 {
-                    url:'/action2/HomePageInfo.ashx',
+                    code:0,
+                    url:'https://www.muyouche.com/action2/HomePageInfo.ashx',
+                    method:'post',
                 },
                 {
-                    url:'/action2/CarBrand.ashx',
+                    code:0,
+                    url:'https://www.muyouche.com/action2/CarBrand.ashx',
+                    method:'post',
                 },
             ],
-            success(res1,res2){//都成功回调
-                console.log(res1,res2);
-            },
-            fail(statusArr,codeArr){//失败的状态和code数组
-                console.log(statusArr,codeArr);
+            success(resArr){//都成功回调
+                console.log(resArr);
             },
         },
     });
+
+    promise风格：
+    axiosWrap({
+        all:{
+            apis:[//所有api配置
+                {
+                    code:0,
+                    url:'https://www.muyouche.com/action2/HomePageInfo.ashx',
+                    method:'post',
+                },
+                {
+                    code:0,
+                    url:'https://www.muyouche.com/action2/CarBrand.ashx',
+                    method:'post',
+                },
+            ],
+        },
+    }).then((resArr)=>{
+        console.log(resArr);
+    });
 */
-function axiosWrap(option){
-    var option=option||{};
+function axiosWrap(config){
+    var config=config||{};
     var hostname=window.location.hostname;
-    var all=option.all;
+    var all=config.all;
+    var errorPromise={
+        then:function(){
+            console.error('这是一个无效的then函数，如果要使用promise方式，不要在config对象里配置success、error、finally函数');
+            return this;
+        },
+        catch:function(){
+            console.error('这是一个无效的catch函数，如果要使用promise方式，不要在config对象里配置success、error、finally函数');
+            return this;
+        },
+        finally:function(){
+            console.error('这是一个无效的finally函数，如果要使用promise方式，不要在config对象里配置success、error、finally函数');
+            return this;
+        },
+    };
+
+    config.code=config.code||config.code==0?config.code:200;
 
     function changeLoading(bool){
         try{
@@ -3265,65 +3431,72 @@ function axiosWrap(option){
 
     changeRefresh(false);
 
-    function createAxios(option){
-        var url=(hostname=='localhost'||hostname=='127.0.0.1'||hostname=='172.16.21.92')?(option.url?option.url:'/api'):'/*.jsonRequest';
-        var method=option.method?option.method.toLowerCase():'';
+    function createAxios(config){
+        var url=(hostname=='localhost'||hostname=='127.0.0.1'||hostname=='172.16.21.92')?(config.url?config.url:'/api'):'/';
+        var method=config.method?config.method.toLowerCase():'';
         var paramsOrData=method=='get'?'params':'data';
-        var config={
+        var configResult={
             url:url,
             method:method,
-            [paramsOrData]:option.params,
-            headers:option.headers||{},
-            timeout:option.timeout||5000,
-            responseType:option.responseType||'json', //默认值是json，可选项 'arraybuffer', 'blob', 'document', 'json', 'text', 'stream'
+            [paramsOrData]:config.params,
+            headers:config.headers||{},
+            timeout:config.timeout||5000,
+            responseType:config.responseType||'json', //默认值是json，可选项 'arraybuffer', 'blob', 'document', 'json', 'text', 'stream'
             onUploadProgress:function(ev){
-                option.upFn&&option.upFn(ev);
+                config.upFn&&config.upFn(ev);
             },
             onDownloadProgress:function(ev){
-                option.downFn&&option.downFn(ev);
+                config.downFn&&config.downFn(ev);
             },
-        }
-        var axiosFn=axios(config);
-        var noLoginStatus=[403,409,503];
+        };
+        var axiosFn=axios(configResult);
 
-        if(option.success||option.error||option.finally){
-            !option.noMask&&changeLoading(true);
-
+        function axiosResultFn(resolve,reject){
             axiosFn.then(function(res){
                 var data=res.data;
 
                 if(res.status==200){
                     changeLoading(false);
-                    option.finally&&option.finally(data);
+                    config.finally&&config.finally(data);
 
-                    if(data.code==200){
-                        option.success&&option.success(data);
-                    }else if(data.code==505){
-                        nativeApi.toPerfectInfo();
+                    if(data.code==config.code){
+                        if(resolve&&(Type(resolve)=='function')){
+                            return resolve(data);
+                        }else{
+                            config.success&&config.success(data);
+                        }
                     }else{
-                        if(!option.noHint){
+                        if(!config.noHint){
                             if(data.msg){
                                 alerts(data.msg);
                             }else{
                                 alerts('请求代码错误');
                             }
                         }
+                        if(reject&&(Type(reject)=='function')){
+                            return reject(data);
+                        }
                     }
                 }else{
                     alerts('网络异常'+res.status);
                     changeRefresh(true,res.status);
-                    option.error&&option.error(res);
+                    if(reject&&(Type(reject)=='function')){
+                        return reject(res);
+                    }else{
+                        config.error&&config.error(res);
+                    }
                 }
             }).catch(function(error){
                 console.log(error);
                 if(error.response){
+                    var noLoginStatus=[403,409,503];
                     var hint=true;
 
                     if(noLoginStatus.indexOf(error.response.status)!=-1){
                         hint=false;
-                        if(option.headers['X-Access-Token']){
+                        if(config.headers['X-Access-Token']){
                             nativeApi.tokenError();
-                        }else if(!option.noToLogin){
+                        }else if(!config.noToLogin){
                             nativeApi.toLogin();
                         }
                     }
@@ -3331,16 +3504,32 @@ function axiosWrap(option){
                     if(hint){
                         alerts('网络异常');
                         changeRefresh(true,error.response.status);
-                        option.error&&option.error(error.response);
+                        if(reject&&(Type(reject)=='function')){
+                            return reject(error.response)
+                        }else{
+                            config.error&&config.error(error.response);
+                        }
                     }
                 }else if(error.code=='ECONNABORTED'){
                     alerts('请求超时');
                     changeRefresh(true,'请求超时');
-                    option.error&&option.error(error);
+                    if(reject&&(Type(reject)=='function')){
+                        return reject(error);
+                    }else{
+                        config.error&&config.error(error);
+                    }
                 }
             });
+        };
+
+        !config.noMask&&changeLoading(true);
+        if(config.success||config.error||config.finally){
+            axiosResultFn();
+            return errorPromise;
         }else{
-            return axiosFn;
+            return new Promise(function(resolve,reject){
+                axiosResultFn(resolve,reject);
+            });
         }
     };
 
@@ -3353,83 +3542,26 @@ function axiosWrap(option){
             }
         }
 
-        !option.noMask&&changeLoading(true);
-
-        axios.all(apisArr).then(axios.spread(function(){
-            if(arguments&&arguments.length){
-                var resArr=Object.entries(arguments);
-                var dataArr=[];
-                var statusArr=[];
-                var codeArr=[];
-                var statusFail=[];
-                var codeFail=[];
-
-                resArr=resArr.map(function(item,index){
-                    return item[1];
-                });
-                dataArr=resArr.map(function(item,index){
-                    return item.data;
-                });
-                statusArr=resArr.map(function(item,index){
-                    return item.status;
-                });
-                codeArr=dataArr.map(function(item,index){
-                    return item.code;
-                });
-                statusFail=statusArr.filter(function(item,index){
-                    return item!=200;
-                });
-                codeFail=codeArr.filter(function(item,index){
-                    return item!=200;
-                });
-
-                all.fail&&all.fail(statusFail,codeFail);
-                if(statusFail&&statusFail.length==0){
-                    changeLoading(false);
-                    all.finally&&all.finally.apply(null,dataArr);
-
-                    if(codeFail&&codeFail.length==0){
-                        all.success&&all.success.apply(null,dataArr);
-                    }else if(codeFail.indexOf(505)!=-1){
-                        nativeApi.toPerfectInfo();
-                    }else{
-                        if(!all.noHint){
-                            alerts('请求代码错误');
-                        }
-                    }
+        function axiosAllResultFn(resolve,reject){
+            Promise.all(apisArr).then(function(){
+                if(resolve&&(Type(resolve)=='function')){
+                    return resolve(arguments[0]);
                 }else{
-                    alerts('网络异常');
-                    changeRefresh(true,statusFail.join(','));
-                    all.error&&all.error.apply(null,dataArr);
+                    all.success&&all.success(arguments[0]);
                 }
-            }
-        })).catch(function(error){
-            console.log(error);
-            if(error.response){
-                var hint=true;
+            });
+        };
 
-                if(noLoginStatus.indexOf(error.response.status)!=-1){
-                    hint=false;
-                    if(option.headers['X-Access-Token']){
-                        nativeApi.tokenError();
-                    }else if(!option.noToLogin){
-                        nativeApi.toLogin();
-                    }
-                }
-
-                if(hint){
-                    alerts('网络异常');
-                    changeRefresh(true,error.response.status);
-                    all.error&&all.error(error.response);
-                }
-            }else if(error.code=='ECONNABORTED'){
-                alerts('请求超时');
-                changeRefresh(true,'请求超时');
-                all.error&&all.error(error);
-            }
-        });
+        if(all.success||all.error||all.finally){
+            axiosAllResultFn();
+            return errorPromise;
+        }else{
+            return new Promise(function(resolve,reject){
+                axiosAllResultFn(resolve,reject);
+            });
+        }
     }else{
-        return createAxios(option);
+        return createAxios(config);
     }
 };
 
@@ -3742,7 +3874,7 @@ export{
         shortDate,
 
         QSA,
-        ajax,
+        ajaxWrap,
         Type,
         yydTimer,
         getStyle,

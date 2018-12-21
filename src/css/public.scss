@@ -2,7 +2,14 @@
 /* CSS Document */
 
 /*sass定义*/
-/*全局变量*/
+/*计算单位函数*/
+@function unit($num){
+    $scale: 1;//缩放比例
+
+    @return #{if($num == 1, 1, $num * $scale)}px;
+}
+
+/*公共变量*/
 $main: #33adff;//主色
 $bg: #f2f2f2;//背景色
 $orangeBg: #ffe4dd;//橙色背景
@@ -15,6 +22,7 @@ $border1: 1px solid #e4e4e4;//常用边框1
 $border2: 1px solid #bbbcc6;//常用边框2，头像边框
 $cp: #FFA400;
 
+/*公共样式*/
 /*普通盒子阴影样式*/
 .shadow1{
     box-shadow: 0 0 4px rgba(0,0,0,0.1);

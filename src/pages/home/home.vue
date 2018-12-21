@@ -42,8 +42,8 @@
         },
 
         mounted(){
-            //查询是否有未结束问诊
-            this.unfinishFn();
+            //获取首页数据
+            this.getHomeData();
 
             // this.$alert(
             //     '网页版不支持该功能，请下载app进行体验！',
@@ -70,12 +70,9 @@
         },
 
         methods:{
-            getHomeData(res){
-                this.hotDept=res.body.hotDept;
-            },
-            unfinishFn(){
-                findUnfinishConsult([],(res)=>{
-                    this.userId=res.body;
+            getHomeData(){
+                residentIndex([],(res)=>{
+                    this.hotDept=res.body.hotDept;
                 });
             },
         },
