@@ -3286,10 +3286,6 @@ function computed(num1,operator,num2){
 
 //axios包装
 //支持回调函数和promise两种风格
-//success（状态200执行回调函数）
-//error（状态不为200的回调函数）
-//finally（不管状态为什么都走的回调函数）
-//all（多个axios请求，也可以使用axios.all）
 /*
     参数：
     axiosWrap({
@@ -3298,7 +3294,7 @@ function computed(num1,operator,num2){
         params:'',//请求传参
         responseType:'json',//返回数据类型
         headers:{},//请求头设置
-        timeout:5000,//请求超时设置
+        timeout:20000,//请求超时设置
         onUploadProgress:function(ev){//上传文件时触发的函数
             console.log(ev);
         },
@@ -3432,7 +3428,7 @@ function axiosWrap(config){
     changeRefresh(false);
 
     function createAxios(config){
-        var url=(hostname=='localhost'||hostname=='127.0.0.1'||hostname=='172.16.21.92')?(config.url?config.url:'/api'):'/';
+        var url=(hostname=='localhost'||hostname=='127.0.0.1'||hostname=='172.16.21.92')?(config.url?config.url:'/api'):'/*.jsonRequest';
         var method=config.method?config.method.toLowerCase():'';
         var paramsOrData=method=='get'?'params':'data';
         var configResult={
@@ -3440,7 +3436,7 @@ function axiosWrap(config){
             method:method,
             [paramsOrData]:config.params,
             headers:config.headers||{},
-            timeout:config.timeout||5000,
+            timeout:config.timeout||20000,
             responseType:config.responseType||'json', //默认值是json，可选项 'arraybuffer', 'blob', 'document', 'json', 'text', 'stream'
             onUploadProgress:function(ev){
                 config.upFn&&config.upFn(ev);
@@ -3465,6 +3461,8 @@ function axiosWrap(config){
                         }else{
                             config.success&&config.success(data);
                         }
+                    }else if(data.code==505){
+                        nativeApi.toPerfectInfo();
                     }else{
                         if(!config.noHint){
                             if(data.msg){
@@ -3492,7 +3490,7 @@ function axiosWrap(config){
                     var noLoginStatus=[403,409,503];
                     var hint=true;
 
-                    if(noLoginStatus.indexOf(error.response.status)!=-1){
+                    if(~noLoginStatus.indexOf(error.response.status)){
                         hint=false;
                         if(config.headers['X-Access-Token']){
                             nativeApi.tokenError();
