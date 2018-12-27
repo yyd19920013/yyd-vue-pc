@@ -16,15 +16,14 @@
     "test": "npm run unit && npm run e2e"
   },
   "dependencies": {
-    "axios": "^0.18.0",
-    "copy-to-clipboard": "^3.0.8",
-    "element-ui": "^2.4.9",
-    "fastclick": "^1.0.6",
-    "jquery": "^3.2.1",
-    "md5": "^2.2.1",
-    "vue": "^2.5.0",
-    "vue-router": "^2.4.0",
+    "vue": "^2.5.2",
+    "vue-router": "^3.0.1",
     "vuex": "^2.3.1",
+    "element-ui": "^2.4.9",
+    "axios": "^0.18.0",
+    "fastclick": "^1.0.6",
+    "copy-to-clipboard": "^3.0.8",
+    "md5": "^2.2.1",
     "yyd-decimal": "^9.0.1"
   },
   "devDependencies": {

@@ -1,5 +1,4 @@
 // JavaScript Document
-import $ from 'jquery';
 import md5 from 'md5';
 import Decimal from 'yyd-decimal';
 import axios from 'axios';

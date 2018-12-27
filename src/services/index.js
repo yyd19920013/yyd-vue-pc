@@ -1,4 +1,3 @@
-import $ from 'jquery';
 import vm from 'src/main.js';
 import md5 from 'md5';
 import {cookie,lStore,sStore,alerts,strToJson,axios,axiosWrap,createStr} from 'js/yydjs.js';
