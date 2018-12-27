@@ -23,6 +23,12 @@ $border2: 1px solid #bbbcc6;//常用边框2，头像边框
 $cp: #FFA400;
 
 /*公共样式*/
+/*限制宽度容器*/
+@mixin container{
+    width: 1200px;
+    margin: 0 auto;
+}
+
 /*普通盒子阴影样式*/
 .shadow1{
     box-shadow: 0 0 4px rgba(0,0,0,0.1);

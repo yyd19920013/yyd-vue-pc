@@ -88,10 +88,9 @@
             width: 100%;
             background-color: #393737;
             .wrap{
-                width: 1200px;
+                @include container;
                 padding-top: 10px;
                 padding-bottom: 20px;
-                margin: 0 auto;
                 overflow: hidden;
             }
             .fl{
