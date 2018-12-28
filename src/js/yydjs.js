@@ -3736,12 +3736,14 @@ function controlBodyScroll(disableScroll,goTop){
 
     if(disableScroll){
         oHtml.style.height='100%';
+        oHtml.style.overflowY='hidden';
         oBody.style.height='100%';
         oBody.style.overflowY='hidden';
     }else{
         oHtml.style.height='auto';
+        oHtml.style.overflowY='visible';
         oBody.style.height='auto';
-        oBody.style.overflowY='auto';
+        oBody.style.overflowY='visible';
     }
 
     if(goTop){
