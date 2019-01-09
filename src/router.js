@@ -26,6 +26,7 @@ export default[{
             path:'/test',
             component:test,
             meta:{
+                title:'测试',
                 noLogin:true,
                 keepPos:true,
             },
@@ -34,11 +35,17 @@ export default[{
         {
             path:'/home',
             component:home,
+            meta:{
+                title:'首页',
+            },
         },
         //404页面
         {
             path:'*',
             component:page404,
+            meta:{
+                title:'404',
+            },
         },
     ]
 }]

@@ -238,6 +238,9 @@ router.beforeEach((to,from,next)=>{
         isLoading:true,
     });
 
+    //根据meta值改变title
+    document.title=to.meta.title;
+
     //恢复正常样式
     document.body.classList.remove('app');
 
@@ -299,17 +302,6 @@ router.afterEach((to,from)=>{
         }
     };
     queryHandle();
-
-    //根据路由改变title
-    const changeTitle=()=>{
-        let defaultTitle='';
-        let json={
-                    //'/home':'木有车B2B首页',
-                    //'/user/myShopQRcode':'店铺二维码',
-                };
-        document.title=json[to.path]?json[to.path]:defaultTitle;
-    };
-    changeTitle();
 
     //根据地址传参计算状态栏高度
     const computedStatusBarHeight=()=>{
