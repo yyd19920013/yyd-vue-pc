@@ -633,11 +633,14 @@ function isSafari(){
     return window.navigator.userAgent.match(reg)?true:false;
 };
 
+//cookie操作
 var cookie={
-    set:function(key,value,mesc){//设置cookie
+    set:function(key,value,sec){
+        var sec=sec||60*60*24*30;
         var oDate=new Date();
 
-        oDate.setSeconds(oDate.getSeconds()+(mesc||60*60*24*30));//不传过期秒数默认30天过期
+        oDate.setSeconds(oDate.getSeconds()+sec);
+        oDate=oDate.toGMTString();
         document.cookie=key+'='+encodeURIComponent(value)+';expires='+oDate;
     },
     get:function(key){//获取cookie
@@ -652,16 +655,18 @@ var cookie={
             str+='"}';
             str=JSON.parse(str);
         }catch(e){}
-        return decodeURIComponent(str[key]);
+        return str[key]?decodeURIComponent(str[key]):str[key];
     },
     remove:function(key){//删除cookie
         var oDate=new Date();
 
         oDate.setDate(oDate.getDate()-1);
-        document.cookie=key+'='+''+';expires='+oDate.toGMTString();
+        oDate=oDate.toGMTString();
+        document.cookie=key+'='+''+';expires='+oDate;
     },
 };
 
+//创建Store对象
 var Store=function(){
     this.name='Store';
 };
@@ -715,10 +720,12 @@ Store.prototype={
     },
 };
 
+//localStorage操作
 var lStore=new Store().init({
     'type':window.localStorage,
 });
 
+//sessionStorage操作
 var sStore=new Store().init({
     'type':window.sessionStorage,
 });
