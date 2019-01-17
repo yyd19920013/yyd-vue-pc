@@ -239,7 +239,7 @@ router.beforeEach((to,from,next)=>{
     });
 
     //根据meta值改变title
-    document.title=to.meta.title;
+    if(to.meta&&to.meta.title)document.title=to.meta.title;
 
     //恢复正常样式
     document.body.classList.remove('app');
