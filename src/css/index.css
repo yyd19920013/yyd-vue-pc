@@ -135,7 +135,7 @@ input:-webkit-autofill{-webkit-box-shadow:inset 0 0 0px 1000px #fff;}
 
 /*layout*/
 #webpack-hot-middleware-clientOverlay{ display:none!important;}
-#app{ min-width: 1200px; margin: 0 auto; }
+#app{ min-width: 1200px; margin: 0 auto; position: relative; }
 
 /*路由过渡*/
 .router-fade-leave-active{ transition: opacity .1s; opacity: 0; }
