@@ -87,20 +87,13 @@ function consoleNull(arr){
 //whiteList（允许调试的域名列表，例子如下：）
 //openMoblieDebug(['ih.dev.aijk.net','ih2.test.aijk.net']);
 function openMoblieDebug(whiteList){
+    var whiteList=whiteList||[];
     var hostname=window.location.hostname;
+    var open=hostname=='localhost'||hostname=='127.0.0.1'||hostname=='172.16.21.92'||~whiteList.indexOf(hostname);
     var count=0;
-    var onOff=false;
-
-    for(var i=0;i<whiteList.length;i++){
-        if(hostname==whiteList[i]){
-            onOff=true;
-            break;
-        }
-    }
 
     function openFn(){
         var oErudaScript=document.getElementById('//cdn.jsdelivr.net/npm/eruda');
-        var open=(hostname=='localhost'||hostname=='127.0.0.1'||hostname=='172.16.21.92'||onOff);
 
         if(!oErudaScript&&open){
             var oScript=document.createElement('script');
@@ -131,8 +124,10 @@ function openMoblieDebug(whiteList){
         }
     };
 
-    unbind(document,'click',openJudgeFn);
-    bind(document,'click',openJudgeFn);
+    if(open){
+        unbind(document,'click',openJudgeFn);
+        bind(document,'click',openJudgeFn);
+    }
 };
 
 //判断数据类型的方法（对typeof的增强，7种常用类型的判断，返回小写字符串）
