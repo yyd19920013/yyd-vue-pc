@@ -1,1 +1,1 @@
-This is a patient project.
+This is a vue.js project.
