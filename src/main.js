@@ -12,7 +12,7 @@ import 'src/ELE.js';
 import fastclick from 'fastclick';
 import * as yyd from 'js/yydjs';
 import * as filter from './filter';
-import {QSA,alerts,consoleNull,htmlFontSize,networkHandle,openMoblieDebug,bind,unbind,pDef,lStore,sStore,isPhone,strToJson,controlBodyScroll,hasPrevHistoryPageFn,webviewRefresh} from 'js/yydjs';
+import {QSA,alerts,consoleNull,htmlFontSize,networkHandle,openMoblieDebug,bind,unbind,pDef,lStore,sStore,isPhone,strToJson,controlBodyScroll,hasPrevHistoryPageFn} from 'js/yydjs';
 import {URL,findDic} from 'services';
 
 //处理点击延迟
@@ -328,9 +328,6 @@ router.afterEach((to,from)=>{
             },
             logout(){//logout方法
                 lStore.set('token','');
-            },
-            webviewRefresh(){
-                webviewRefresh();
             },
         };
 
