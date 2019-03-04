@@ -2951,6 +2951,7 @@ function preload(arr,endFn){
     });
 */
 function ajaxWrap(config){
+    if(!window.navigator.onLine)return alerts('当前无网络！');
     var str='';
     var errorPromise={
         then:function(){
@@ -3379,6 +3380,7 @@ function computed(num1,operator,num2){
     });
 */
 function axiosWrap(config){
+    if(!window.navigator.onLine)return alerts('当前无网络！');
     var config=config||{};
     var hostname=window.location.hostname;
     var all=config.all;
