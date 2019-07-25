@@ -3590,6 +3590,7 @@ function axiosWrap(config){
                 }else{
                     alerts('网络异常'+res.status);
                     changeRefresh(true,res.status);
+                    changeLoading(false);
                     if(reject&&(Type(reject)=='function')){
                         return reject(res);
                     }else{
@@ -3598,6 +3599,7 @@ function axiosWrap(config){
                 }
             }).catch(function(error){
                 console.log(error);
+                changeLoading(false);
                 if(error.response){
                     var noLoginStatus=[403,409,503];
                     var hint=true;
