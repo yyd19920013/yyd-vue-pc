@@ -53,6 +53,23 @@ input:-webkit-autofill{-webkit-box-shadow:inset 0 0 0px 1000px #fff;}
 .show{display:block;}
 .hide{display:none;}
 
+/*滚动条样式调整*/
+::-webkit-scrollbar{/*血槽宽高*/
+    width: 10px;
+    height: 10px;
+    background-color: #fff;
+}
+::-webkit-scrollbar-track{/*背景槽*/
+    -webkit-box-shadow: inset 0 0 5px rgba(0,0,0,0.1);
+    background-color: #eee;
+    border-radius: 10px;
+}
+::-webkit-scrollbar-thumb{/*拖动条*/
+    -webkit-box-shadow: inset 0 0 5px rgba(0,0,0,.1);
+    background-color: rgba(0,0,0,.1);
+    border-radius: 10px;
+}
+
 /*开启硬件加速*/
 .willChange{will-change:transform;transform:translate3d(0,0,0);-webkit-transform:translate3d(0,0,0);}
 
