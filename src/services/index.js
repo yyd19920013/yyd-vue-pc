@@ -1,6 +1,6 @@
 import vm from 'src/main.js';
 import md5 from 'md5';
-import {cookie,lStore,sStore,alerts,strToJson,axios,axiosWrap,createStr} from 'js/yydjs.js';
+import {cookie,lStore,sStore,alerts,strToJson,axios,axiosWrap} from 'js/yydjs.js';
 
 const URL='/api';//域名
 
@@ -34,38 +34,6 @@ const testAxios=(params,endFn)=>{
             endFn&&endFn(res);
         },
     });
-};
-
-const mockDoctorList=(params,endFn)=>{
-    var defaultParams={
-        page:0,
-        pageSize:10,
-    };
-    var res={
-        code:0,
-        data:{
-            dataList:[],
-            rows:100,
-        },
-        message:'请求成功',
-    };
-
-    for(let attr in params){
-        defaultParams[attr]=params[attr];
-    }
-
-    for(let i=0;i<defaultParams.pageSize;i++){
-        res.data.dataList.push({
-            doctorName:createStr(3),
-            hospital:createStr(6),
-            count:Math.floor(Math.random()*100),
-            detail:createStr(50),
-        });
-    }
-
-    setTimeout(()=>{
-        endFn&&endFn(res);
-    },1000);
 };
 
 /*

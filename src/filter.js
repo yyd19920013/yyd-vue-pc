@@ -1,4 +1,4 @@
-import {getWeekName,formatSecond,dateFormat0,dateFormat1,Decimal,amountFormat0,getAge} from 'js/yydjs.js';
+import {getWeekName,secondFormat0,dateFormat0,dateFormat1,Decimal,amountFormat0,getAge} from 'js/yydjs.js';
 
 const date=(value,format)=>{
     if(!value&&value!=0)return;
@@ -36,10 +36,10 @@ const week=(value)=>{
     return getWeekName(value);
 };
 
-const fSecond=(value,mode)=>{
+const fSecond=(value,fmt,adjustFmt)=>{
     if(!value&&value!=0)return;
 
-    return formatSecond(value,mode);
+    return secondFormat0(value,fmt,adjustFmt);
 };
 
 const age=(value)=>{

@@ -71,7 +71,7 @@
 <script>
     import loadMore from 'components/common/loadMore';
     import defaultImage from 'components/common/defaultImage';
-    import {getImgUrl,nativeApi} from 'js/yydjs';
+    import {getImgUrl} from 'js/yydjs';
 
     export default{
         data(){
@@ -79,7 +79,6 @@
                 dataList:[],
                 showDefaultImage:false,
                 getImgUrl,
-                nativeApi,
             }
         },
 
@@ -133,7 +132,7 @@
                     title:'提示',
                     content:'目前已开通电话助理，是否立即咨询？',
                     onConfirm(){
-                        nativeApi.tel('010-84369221');
+
                     },
                 });
             },
