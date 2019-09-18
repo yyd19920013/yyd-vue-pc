@@ -149,8 +149,8 @@
                 return (!limit&&limit!='0')||(limit&&parent&&parent[dataListName]&&parent[dataListName].length<limit)?false:true;
             },
             pullUpList(){
-                let oH=QSA('#app')[0].offsetHeight;
-                let gH=parseInt(getStyle(QSA('#app')[0],'height'));
+                let oH=document.body.offsetHeight;
+                let gH=parseInt(document.body,'height');
                 let tH=oH||gH;
                 let cH=document.documentElement.clientHeight;
                 let sT=document.documentElement.scrollTop||document.body.scrollTop;

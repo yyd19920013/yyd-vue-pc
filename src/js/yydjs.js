@@ -2,6 +2,7 @@
 import md5 from 'md5';
 import Decimal from 'yyd-decimal';
 import axios from 'axios';
+import postcssrc from 'root/.postcssrc';
 import CONFIG from 'config';
 import vm from 'src/main';
 
@@ -787,32 +788,6 @@ function Scroll(obj,position,dis){
     }
 };
 
-//根据设备宽度来写相对布局,
-//最小1rem=100px(宽度为375px屏幕下),3.75rem=100%;
-//根据375屏幕下换算来布局
-//小于375屏幕根节点字体大小与375屏幕保持一致，注意宽度的溢出
-function htmlFontSize(getFontSize){
-    function change(){
-        var oHtml=document.documentElement;
-        var fontSize=oHtml.clientWidth/3.75;
-
-        if(fontSize<100)fontSize=100;
-        if(fontSize>208)fontSize=208;
-        if(!getFontSize){
-            oHtml.style.fontSize=fontSize+'px';
-        }else{
-            return fontSize;
-        }
-    };
-
-    if(!getFontSize){
-        change();
-        window.onresize=change;
-    }else{
-        return change();
-    }
-};
-
 //根据屏幕大小设置根节点字体大小
 //getFontSize（是否返回根节点fontSize大小）
 //basic（基准值）
@@ -821,18 +796,41 @@ function htmlFontSize(getFontSize){
     最好结合postcss-pxtorem插件自动转换px为rem
 
     安装：
-    npm install postcss-pxtorem -D
+    npm i postcss-pxtorem -D
 
     修改根目录 .postcssrc.js 文件：
+    注意：rootValue和basic（基准值）保持一致
     "postcss-pxtorem": {
-      "rootValue": 32,
-      "propList": ["*"]
+        "rootValue": 100,
+        "minPixelValue": 2, //如px小于这个值，就不会转换了
+        "propList": ["*"], // 如需开启pxToRem模式，请在数组中加入"*"
+        "selectorBlackList": [] //如需把css选择器加入黑名单，请在数组中加入对应的前缀，比如"mint-"
     }
+
+    或者修改webpack.dev.conf.js和webpack.prod.conf.js
+    test: /\.(css|scss|less)$/,
+    use:[
+        {
+            options:{
+                plugins:()=>[
+                    require('postcss-pxtorem')({
+                        "rootValue": 100,
+                        "minPixelValue": 2, //如px小于这个值，就不会转换了
+                        "propList": ["*"], // 如需开启pxToRem模式，请在数组中加入"*"
+                        "selectorBlackList": [] //如需把css选择器加入黑名单，请在数组中加入对应的前缀，比如"mint-"
+                    }),
+                ],
+            },
+        },
+        {
+            loader: require.resolve('sass-loader'),
+        },
+    ],
 */
-function htmlFontSize1(getFontSize,basic,maxScale){
+function htmlFontSize(getFontSize,basic,maxScale){
     var getFontSize=getFontSize||false;
-    var basic=basic||32;
-    var maxScale=maxScale||2;
+    var basic=basic||100;
+    var maxScale=maxScale||1.5;
 
     function change(){
         var oHtml=document.documentElement;
@@ -853,6 +851,23 @@ function htmlFontSize1(getFontSize,basic,maxScale){
     }else{
         return change();
     }
+};
+
+//转换单位为rem
+//需要引入import postcssrc from 'root/.postcssrc';
+function unit(num,basic){
+    var length=0;
+
+    if(postcssrc){
+        length=postcssrc.plugins['postcss-pxtorem'].propList.length;
+    }
+
+    if(num==0)return 0;
+    if(length==0)return num+'px';
+    var basic=basic||100;
+    var value=num/basic;
+
+    return (value<0.01?0.01:value)+'rem';
 };
 
 //获取对象样式
@@ -2098,6 +2113,257 @@ function computed(num1,operator,num2){
     return result;
 };
 
+//execCommand对文档执行预定义命令
+//aCommandName表示要执行的命令名称，不可省略
+//aShowDefaultUI表示是否显示对话框，默认为false，可省略
+//aValueArgument表示额外参数值，默认为null，可省略
+function execCommandFn(key,value){
+    var commandJson={
+        //段落格式
+        '1_1':'justifyCenter',//居中
+        '1_2':'justifyLeft',//左对齐
+        '1_3':'justifyRight',//右对齐
+        '1_4':'indent',//添加缩进
+        '1_5':'outdent',//去掉缩进
+        //文本格式
+        '2_1':'fontname',//字体类型
+        '2_2':'fontsize',//字体大小
+        '2_3':'forecolor',//字体颜色
+        '2_4':'backColor',//背景色
+        '2_5':'bold',//加粗
+        '2_6':'italic',//斜体
+        '2_7':'underline',//下划线
+        //编辑
+        '3_1':'copy',//复制
+        '3_2':'cut',//剪切
+        '3_3':'paste',//粘贴(经测试无效)
+        '3_4':'selectAll',//全选
+        '3_5':'delete',//删除
+        '3_6':'forwarddelete',//后删除
+        '3_7':'removeFormat',//清空格式
+        '3_8':'redo',//前进一步
+        '3_9':'undo',//后退一步
+        '3_10':'print',//打印(对firefox无效)
+        //插入
+        '4_1':'insertHTML',//插入文档
+        '4_2':'formatblock',//插入标签
+        '4_3':'inserthorizontalrule',//插入<hr>
+        '4_4':'insertorderedlist',//插入<ol>
+        '4_5':'insertunorderedlist',//插入<ul>
+        '4_6':'insertparagraph',//插入<p>
+        '4_7':'insertimage',//插入图像
+        '4_8':'createlink',//增加链接
+        '4_9':'unlink',//删除链接
+    };
+    var aCommandName=commandJson[key];
+    var aShowDefaultUI=false;
+    var aValueArgument=value;
+
+    document.execCommand(aCommandName,aShowDefaultUI,aValueArgument);
+};
+
+//选中文字兼容
+function selectText(endFn){
+    var selectedObj=null;
+    var rangeObj=null;
+    var text='';
+    var html='';
+
+    if(document.getSelection){
+        var oDiv=document.createElement('div');
+        var cloneContents='';
+
+        selectedObj=document.getSelection();//标准
+        text=selectedObj.toString();
+        if(selectedObj.rangeCount>0){
+            rangeObj=selectedObj.getRangeAt(0);
+            cloneContents=rangeObj.cloneContents();
+            oDiv.appendChild(cloneContents);
+            html=oDiv.innerHTML;
+        }
+    }else{
+        selectedObj=document.selection.createRange();//ie
+        text=selectedObj.text;
+        html=selectedObj.htmlText;
+    }
+
+    endFn&&endFn({
+        selectedObj:selectedObj,//Selection对象
+        rangeObj:rangeObj,//range对象
+        text:text,//选中的文字
+        html:html,//选中的html
+        wrapTag:function(tagName,insert,objStyle,objProperty,objAttribute){//给选中的内容包裹一个标签（并选中）
+            var tagName=tagName||'span';
+            var objStyle=objStyle||{};
+            var objProperty=objProperty||{};
+            var objAttribute=objAttribute||{};
+            var oRange=selectedObj.rangeCount>0?selectedObj.getRangeAt(0):'';
+            var oTag=document.createElement(tagName);
+
+            for(var attr in objStyle){
+                oTag.style[attr]=objStyle[attr];
+            }
+            if(objStyle['text-align']){
+                oTag.style.display='block';
+            }else if(oTag.style.display=='block'){
+                oTag.style.display='unset';
+            }
+
+            for(var attr in objProperty){
+                oTag[attr]=objProperty[attr];
+            }
+            for(var attr in objAttribute){
+                oTag.setAttribute(attr,objAttribute[attr]);
+            }
+
+            execCommandFn('3_7');
+
+            if(!insert&&oRange&&text){
+                oTag.innerText=text;
+                selectedObj.deleteFromDocument();
+                oRange.insertNode(oTag);
+                selectedObj.removeAllRanges();
+                selectedObj.addRange(oRange);
+            }else{
+                var oContentediable=QSA('[contenteditable="true"]')[0];
+                var oDiv=document.createElement('div');
+
+                oContentediable.focus();
+                oDiv.appendChild(oTag);
+                execCommandFn('4_1',oDiv.innerHTML);
+            }
+        },
+        getNodeList:function(parent){//获取选中的文本类型的node
+            if(!parent)return [];
+            var nodeList=[];
+
+            function getNodeListFn(parent){
+                if(!parent.childNodes.length)return;
+                var childNodes=parent.childNodes;
+
+                for(var i=0;i<childNodes.length;i++){
+                    var isContains=selectedObj.containsNode(childNodes[i])&&childNodes[i].data;
+
+                    if(isContains){
+                        nodeList.push(childNodes[i]);
+                    }else{
+                        getNodeListFn(childNodes[i]);
+                    }
+                }
+            };
+            getNodeListFn(parent);
+
+            return nodeList;
+        },
+        getCssText:function(parent){//获取元素以及所有后代的cssText并解析成json
+            if(!parent)return {};
+            var result={};
+
+            function getCssTextFn(parent){
+                if((!parent.childNodes||!parent.childNodes.length)&&(!parent.style||!parent.style.cssText))return;
+                var cssText=parent.style.cssText;
+                var reg=/(:\s")+/g;
+                var reg1=/(";\s)+/g;
+                var reg2=/(:\s)+/g;
+                var reg3=/(;\s)+/g;
+
+                try{
+                    if(cssText.length){
+                        cssText=cssText.replace(reg,': ');
+                        cssText=cssText.replace(reg1,'; ');
+                        cssText=cssText.replace(reg2,'":"');
+                        cssText=cssText.replace(reg3,'","');
+                        cssText=cssText.substring(0,cssText.length-1);
+                        cssText='{"'+cssText;
+                        cssText=cssText+'"}';
+                        cssText=JSON.parse(cssText);
+                    }
+                }catch(e){}
+
+                result=Object.assign({},result,cssText||{});
+                for(var i=0;i<parent.childNodes.length;i++){
+                   getCssTextFn(parent.childNodes[i]);
+                }
+            };
+            getCssTextFn(parent);
+
+            return result;
+        },
+    });
+    return text;
+};
+
+//粘贴事件处理
+function onPaste(obj,endFn){
+    bind(obj,'paste',pasteFn);
+    function pasteFn(ev){
+        var ev=ev||event;
+        var itemList=[];
+        var clipboardData=[];
+        var windowUrl=window.URL||window.webkitURL;
+
+        if(ev.clipboardData&&ev.clipboardData.items){
+            var items=ev.clipboardData.items;
+
+            clipboardData=items;
+            for(var i=0;i<items.length;i++){
+                var item=items[i];
+                var itemJson={};
+
+                itemJson.type=item.kind;
+                switch(item.kind){
+                    case 'string':
+                            item.getAsString(function(text){
+                                itemJson.text=text;
+                            });
+                        break;
+                    case 'file':
+                            itemJson.file=item.getAsFile();
+                            itemJson.previewUrl=windowUrl.createObjectURL(itemJson.file);
+                        break;
+                }
+                itemList.push(itemJson);
+            }
+        }
+
+        endFn&&endFn(itemList,clipboardData);
+    };
+};
+
+//图片文件转base64字符串
+function imgFilesToBase64(files,endFn){
+    var files=files||[];
+    var result=[];
+
+    function imgToBase64(file){
+        var oReader=new FileReader(file);
+
+        oReader.readAsDataURL(file);
+        oReader.onload=function(){
+            var oImg=new Image();
+
+            oImg.src=oReader.result;
+            oImg.onload=function(){
+                var windowUrl=window.URL||window.webkitURL;
+
+                result.push({
+                    file:file,
+                    prevSrc:windowUrl.createObjectURL(file),
+                    base64:oReader.result,
+                });
+
+                if(result.length==files.length){
+                    endFn&&endFn(result);
+                }
+            };
+        };
+    };
+
+    for(var i=0;i<files.length;i++){
+        imgToBase64(files[i]);
+    }
+};
+
 //原生嵌入webview的刷新方法
 function webviewRefresh(){
     var rPath='';
@@ -2127,6 +2393,95 @@ function webviewRefresh(){
         window.location.replace(rPath);
     },300);
 };
+
+//判断页面是否有上一个历史记录页面，即是否可以后退
+/*
+    var hasPrevHistoryPageFn=hasPrevHistoryPage();//创建一个闭包函数
+    var hasPrevHistoryPageFn.record();//每次切换页面执行记录方法
+    hasPrevHistoryPageFn.ableGoBack((bool)=>{//回调中返回是否可以后退的bool值
+        console.log(bool);
+    });
+*/
+function hasPrevHistoryPage(){
+    var historyArr=sStore.get('hasPrevHistoryPageHistoryArr')||[];
+    var historyLength=sStore.get('hasPrevHistoryPageHistoryLength')||[];
+
+    window.onunload=function(){
+        sStore.set('hasPrevHistoryPageHistoryArr',historyArr);
+        sStore.set('hasPrevHistoryPageHistoryLength',historyLength);
+    };
+
+    return{
+        record:function(){
+            function getPage(number){
+                var index=historyLength.indexOf(number);
+
+                return index!=-1?historyArr[index]:'';
+            };
+
+            setTimeout(function(){
+                var href=window.location.href;
+                var length=window.history.length;
+
+                if(href!=historyArr[historyArr.length-1]||length!=historyLength[historyLength.length-1]){
+                    if(historyArr.length>=4){
+                        historyArr.splice(2,1);
+                        historyLength.splice(2,1);
+                    }
+                    historyArr.push(href);
+                    historyLength.push(length);
+
+                    switch(length){
+                        case 1:
+                        case 2:
+                                historyArr[length-1]=href;
+                            break;
+                    }
+
+                    if(historyArr.length>=4){
+                        var currentPage=historyArr[historyArr.length-1];
+                        var currentLength=historyLength[historyLength.length-1];
+                        var prevPage=historyArr[historyArr.length-2];
+                        var prevLength=historyLength[historyLength.length-2];
+                        var firstPage=getPage(1);
+
+                        if(currentPage==firstPage&&currentLength==prevLength){
+                            historyArr[1]=prevPage;
+                        }
+                    }
+                }
+            });
+        },
+        ableGoBack:function(endFn){
+            function getPage(number){
+                var index=historyLength.indexOf(number);
+
+                return index!=-1?historyArr[index]:'';
+            };
+
+            setTimeout(function(){
+                var bool=true;
+                var length=window.history.length;
+
+                if(length==1){
+                    bool=false;
+                }else if(length>=2){
+                    var currentPage=historyArr[historyArr.length-1];
+                    var prevPage=historyArr[historyArr.length-2];
+                    var firstPage=getPage(1);
+                    var secondPage=getPage(2);
+
+                    if(currentPage==firstPage&&prevPage==secondPage){
+                        bool=false;
+                    }
+                }
+
+                endFn&&endFn(bool);
+            });
+        },
+    };
+};
+var hasPrevHistoryPageFn=hasPrevHistoryPage();
 
 //禁止与允许body滚动
 function controlBodyScroll(disableScroll,goTop){
@@ -2181,6 +2536,227 @@ function getImgUrl(){
     return url;
 };
 
+//原生和h5方法判断
+var nativeApi={
+    changeStatusBarColor:function(index){//改变原生状态栏主题颜色
+        var arr=['light','dark'];
+        var index=index||0;
+
+        window.location.href='js://statusbar?flag='+arr[index];
+    },
+    tel:function(mobile){//打电话兼容原生h5
+        if(lStore.get('app')){
+            window.location.href='js://tel?number='+mobile;
+        }else{
+            window.location.href='tel:'+mobile;
+        }
+    },
+    returnApp:function(parent){//返回app
+        if(lStore.get('app')){
+            window.location.href='js://closeView';
+        }else{
+            parent.$router.go(-1);
+        }
+    },
+    toLogin:function(){//返回登录页面
+        var href=encodeURIComponent(window.location.href);
+
+        if(lStore.get('app')){
+            window.location.href='js://login?url='+href;
+        }else{
+
+        }
+    },
+    tokenError:function(){//登录token失效
+        var href=encodeURIComponent(window.location.href);
+
+        if(lStore.get('app')){
+            window.location.href='js://tokenError?url='+href;
+        }else{
+
+        }
+    },
+    toPerfectInfo:function(){//去完善信息页面
+        if(lStore.get('app')){
+            window.location.href='js://userInfoError';
+        }else{
+
+        }
+    },
+    toPay:function(parent,payType,body){//支付
+        var body=encodeURIComponent(body);
+
+        if(lStore.get('app')){
+            window.location.href='js://pay?type='+payType+'&payinfo='+body;
+        }else{
+
+        }
+    },
+    toOrderDetail:function(parent,orderDetailId,itemCode,conStatus,id,replace,goStep){//订单详情
+        var codeJson={
+            '01':'picInquiry',
+            '02':'videoInquiry',
+        };
+
+        function toH5Detail(){
+            parent.$router[replace?'replace':'push']({
+                path:'/user/myInquiry/myInquiryDetail',
+                query:{
+                    orderDetailId:orderDetailId,
+                },
+            });
+        };
+
+        if(lStore.get('app')){
+            conStatus=+conStatus;
+            var arr=[11,12,15,45];
+
+            if(conStatus&&arr.indexOf(conStatus)!=-1){
+                toH5Detail();
+            }else{
+                window.location.href='js://'+codeJson[itemCode]+'?state='+(conStatus||52)+'&orderDetailId='+orderDetailId;
+                if(id){
+                    setTimeout(()=>{
+                        parent.$router.go(goStep||-1);
+                    },1000);
+                }
+            }
+        }else{
+            toH5Detail();
+        }
+    },
+    toEvaluation:function(parent,orderDetailId){//评价详情返回
+        if(lStore.get('app')){
+            window.location.href='js://evaluate?orderDetailId='+orderDetailId;
+        }else{
+            parent.$router.push({
+                path:'/user/myInquiry/myInquiryDetail',
+                query:{
+                    orderDetailId:orderDetailId,
+                },
+            });
+        }
+    },
+    toVisitDispensing:function(data){//复诊配药
+        var data=JSON.stringify(data);
+
+        if(lStore.get('app')){
+            window.location.href='js://subVisitInquiry?data='+data;
+        }else{
+
+        }
+    },
+    toRevisitOrderList:function(orderStatus){//跳转复诊订单列表
+        if(lStore.get('app')){
+            var orderIndexJson={
+                '11':'1',
+                '01':'2',
+                '02':'2',
+                '71':'3',
+                '05':'4',
+            };
+            var orderIndex=orderIndexJson[orderStatus]||0;
+            var href='js://toRevisitOrderList?orderIndex='+orderIndex;
+
+            //console.log(href);
+            window.location.href=href;
+        }else{
+
+        }
+    },
+    toDrugOrderList:function(orderStatus){//跳转药品订单列表
+        if(lStore.get('app')){
+            var orderIndexJson={
+                '11':'1',
+                '21':'2',
+                '22':'3',
+                '05':'4',
+            };
+            var orderIndex=orderIndexJson[orderStatus]||0;
+            var href='js://toDrugOrderList?orderIndex='+orderIndex;
+
+            //console.log(href);
+            window.location.href=href;
+        }else{
+
+        }
+    },
+    addNewPersonSuccess:function(){//添加咨询人成功
+        if(lStore.get('app')){
+            window.location.href='js://addNewPersonSuccess';
+        }else{
+
+        }
+    },
+    toRevisitDetail:function(data){//跳转复诊配药详情
+        var data=JSON.stringify(data);
+
+        //console.log(data);
+        if(lStore.get('app')){
+            window.location.href='js://toRevisitDetail?data='+data;
+        }else{
+
+        }
+    },
+    toDrugPay:function(voucherNo){//跳转药品支付
+        //console.log(voucherNo);
+        if(lStore.get('app')){
+            window.location.href='js://toDrugPay?voucherNo='+voucherNo;
+        }else{
+
+        }
+    },
+    initStatusTitle:function(json){//初始化状态栏、标题栏
+        var json=JSON.stringify(json);
+
+        //console.log(json);
+        /*
+            初始化状态栏、标题栏
+            js-android：bsoftJsInterface.initStatusTitle("json");
+            json = {"title":"标题","titleBarShowState":1,"statusTitleBarMode":0,"statusTitleBarColor":"#354543","titleBtn":[{"id":3,"icon":"1","name":"name","nameColor":"#343434","showMode":1}]}
+
+            title（标题）
+            titleBarShowState （标题栏是否显示）：0 - 不显示；1 - 显示（默认）
+            statusTitleBarMode（状态栏、标题栏模式）：0 - 亮色（默认）；1 - 暗色
+            statusTitleBarColor（状态栏、标题栏颜色）默认主题色
+            titleBtn（标题栏自定义按钮）
+            id（按钮id）
+            icon（按钮图片）
+            name（按钮名称）
+            nameColor（按钮名称颜色）亮色模式默认白色；暗色模式默认黑色
+            showMode（显示模式）：0 - 显示name（默认）；1 - 显示icon
+        */
+        if(lStore.get('app')){
+            if(window.bsoftJsInterface&&window.bsoftJsInterface.initStatusTitle){
+                window.bsoftJsInterface.initStatusTitle(json);
+            }else if(window.webkit&&window.webkit.messageHandlers&&window.webkit.messageHandlers.initStatusTitle){
+                window.webkit.messageHandlers.initStatusTitle.postMessage(json);
+            }
+        }else{
+
+        }
+    },
+    setTitleButton:function(json){//初始化状态栏、标题栏
+        var json=JSON.stringify(json);
+
+        //console.log(json);
+        /*
+            重设标题栏按钮
+            js-android：bsoftJsInterface.setTitleButton("json");
+            json = [{"id":3,"icon":"1","name":"name","nameColor":"#343434","showMode":1}]
+        */
+        if(lStore.get('app')){
+            if(window.bsoftJsInterface&&window.bsoftJsInterface.setTitleButton){
+                window.bsoftJsInterface.setTitleButton(json);
+            }else if(window.webkit&&window.webkit.messageHandlers&&window.webkit.messageHandlers.setTitleButton){
+                window.webkit.messageHandlers.setTitleButton.postMessage(json);
+            }
+        }else{
+
+        }
+    },
+};
+
 //项目中用到的工具函数
 export{
         //常用第三方插件
@@ -2195,6 +2771,7 @@ export{
         //dom以及事件相关方法
         QSA,
         htmlFontSize,
+        unit,
         getStyle,
         getPos,
         Type,
@@ -2246,11 +2823,17 @@ export{
         getSearch,
         preload,
         computed,
+        execCommandFn,
+        selectText,
+        onPaste,
+        imgFilesToBase64,
         antiShake,
         throttle,
         webviewRefresh,
+        hasPrevHistoryPageFn,
         controlBodyScroll,
 
         //项目定制
         getImgUrl,
+        nativeApi,
     };

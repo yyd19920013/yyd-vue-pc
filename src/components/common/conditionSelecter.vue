@@ -63,9 +63,9 @@
                     }
                 }
 
-                if(index!=-1){
+                if(~index){
                     newValue[index]='不限';
-                }else if(index1!=-1){
+                }else if(~index1&&newValue[index1].length>2){
                     newValue[index1]=newValue[index1].replace('不限','');
                 }
             },

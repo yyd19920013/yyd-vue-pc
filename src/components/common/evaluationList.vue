@@ -5,7 +5,7 @@
                 <a>
                     <div class="title">
                         <div class="leftContent">
-                            <span>{{item.patientName}}</span>
+                            <span>{{item.patientName&&item.patientName.length>1?item.patientName.substring(0,1)+'**':item.patientName}}</span>
                             <div class="starWrap">
                                 <i
                                     v-for="(item1,index1) in 5"

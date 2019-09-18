@@ -54,7 +54,7 @@
                     {
                         src:'icon/img_default_content.png',
                         html:{
-                            text:`<h3>暂无可用的问诊券，<a style="color:#33adff;">去兑换~</a></h3>`,
+                            text:`<h3>暂无可用的咨询券，<a style="color:#33adff;">去兑换~</a></h3>`,
                             click:This.goExchange,
                         },
                     },
@@ -99,8 +99,8 @@
                 let This=this;
 
                 this.$vux.confirm.show({
-                    title:'添加问诊券',
-                    placeholder:'请输入问诊券兑换码',
+                    title:'添加咨询券',
+                    placeholder:'请输入咨询券兑换码',
                     showInput:true,
                     onConfirm(value){
                         exchangeVoucher([value,''],(res)=>{

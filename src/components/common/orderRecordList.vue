@@ -1,7 +1,7 @@
 <template>
-    <div class="doctorList">
+    <div class="orderRecordList">
         <ul>
-            <li v-for="(item,index) in dataList">
+            <li v-for="(item,index) in [1,2,3]">
                 <router-link
                     :to="{
                         path:'/specialist',
@@ -12,9 +12,6 @@
                 >
                     <div
                         class="portrait"
-                        :style="{
-                            backgroundImage:item.avatarFileId?'url('+getImgUrl()+item.avatarFileId+')':'',
-                        }"
                     ></div>
                     <div class="rightContent">
                         <div class="basic">
@@ -84,7 +81,7 @@
         },
 
         /*
-            <doctorList
+            <orderRecordList
                 :api="this.mockDoctorList"
             />
         */
@@ -128,15 +125,6 @@
                 }
                 this.firstLoad&&this.firstLoad(res);
             },
-            consultFn(){
-                this.$vux.confirm.show({
-                    title:'提示',
-                    content:'目前已开通电话助理，是否立即咨询？',
-                    onConfirm(){
-
-                    },
-                });
-            },
         },
 
         components:{
@@ -149,7 +137,7 @@
 <style lang="scss" scoped>
     @import '~css/public.scss';
 
-    .doctorList{
+    .orderRecordList{
         background-color: #fff;
         li{
             padding: 10px 0;
@@ -162,7 +150,7 @@
             a{
                 display: flex;
                 .portrait{
-                    @include portrait('../../');
+
                 }
                 .rightContent{
                     flex: 1;
@@ -182,7 +170,7 @@
                                 margin-right: 5px;
                             }
                             i{
-                                @include tuAndShi('../../');
+
                             }
                         }
                         h4{
@@ -230,7 +218,7 @@
             .tel{
                 width: 30px;
                 height: 30px;
-                background: url('../../images/icon/ic_home_phone.png') no-repeat center center;
+
                 background-size: cover;
                 position: absolute;
                 right: $padding;

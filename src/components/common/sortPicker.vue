@@ -3,10 +3,10 @@
         @click="maskClick($event)"
         :class="{
             sortPicker:true,
-            active:parent[showName],
+            active:show,
         }"
         :style="{
-            top:(44+statusBarHeight) + 'px',
+            top:(88+statusBarHeight) + 'px',
         }"
     >
         <ul ref="ulList">
@@ -25,6 +25,8 @@
 </template>
 
 <script>
+    import {controlBodyScroll} from 'js/yydjs';
+
     export default{
         data(){
             return{
@@ -34,7 +36,7 @@
                         sortType:'',
                     },
                     {
-                        name:'接诊量',
+                        name:'咨询量',
                         sortType:'1',
                     },
                     {
@@ -61,7 +63,12 @@
                 type:Object,
                 default:null,
             },
-            showName:{//父组件data中值的名字，用于控制组件显示（必填）
+            show:{//控制组件显示的值（必填）
+                required:true,
+                type:Boolean,
+                default:false,
+            },
+            showName:{//控制组件显示的值的名字（必填）
                 required:true,
                 type:String,
                 default:false,
@@ -77,6 +84,11 @@
         },
 
         watch:{
+            // show(newVal,oldVal){
+            //     if(newVal!=oldVal){
+            //         controlBodyScroll(newVal);
+            //     }
+            // },
             cIndex(){
                 //外部跟新内部索引
                 this.outSetInsideIndex();
