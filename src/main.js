@@ -13,14 +13,14 @@ import 'src/ELE.js';
 import fastclick from 'fastclick';
 import * as yyd from 'js/yydjs';
 import * as filter from './filter';
-import {QSA,alerts,consoleNull,htmlFontSize,networkHandle,openMoblieDebug,bind,unbind,pDef,lStore,sStore,isPhone,strToJson,controlBodyScroll,hasPrevHistoryPageFn} from 'js/yydjs';
-import {URL,findDic} from 'services';
+import { QSA, alerts, consoleNull, htmlFontSize, networkHandle, openMoblieDebug, bind, unbind, pDef, lStore, sStore, isPhone, strToJson, controlBodyScroll, hasPrevHistoryPageFn } from 'js/yydjs';
+import { URL, findDic } from 'services';
 
 //处理点击延迟
-let hostname=window.location.hostname;
-let noNative=hostname!='localhost'&&hostname!='127.0.0.1'&&hostname!='172.16.21.92';;
+let hostname = window.location.hostname;
+let noNative = hostname != 'localhost' && hostname != '127.0.0.1' && hostname != '172.16.21.92';;
 
-if(noNative){
+if (noNative) {
     fastclick.attach(document.body);
 }
 
@@ -28,85 +28,82 @@ if(noNative){
 Vue.use(VueRouter);
 Vue.use(Vuex);
 
-const vmEvent=new Vue();
-const MyPlugin={};
+const MyPlugin = {};
 
-MyPlugin.install=function(Vue,options){
+MyPlugin.install = function (Vue, options) {
     //1. 添加全局方法或属性
     //获取相对域名
-    Vue.prototype.URL=()=>{
+    Vue.prototype.URL = () => {
         return URL;
     };
     //获取绝对域名
-    Vue.prototype.URL1=()=>{
+    Vue.prototype.URL1 = () => {
         return window.location.origin;
     };
     //功能正在开发提示
-    Vue.prototype.HINT=()=>{
+    Vue.prototype.HINT = () => {
         vm.$message({
-            type:'',
+            type: '',
             message: '该功能尚未开放，敬请期待！',
         });
     };
     //下载app提示
-    Vue.prototype.HINT1=()=>{
+    Vue.prototype.HINT1 = () => {
         vm.$alert(
             '网页版不支持该功能，请下载app进行体验！',
-            '提示！',
-            {
-                confirmButtonText:'确定',
-                callback:(action)=>{
+            '提示！', {
+                confirmButtonText: '确定',
+                callback: (action) => {
                     console.log(action);
                 },
             }
         );
         vm.$confirm(
             '网页版不支持该功能，请下载app进行体验?',
-            '提示',
-            {
-                confirmButtonText:'确定',
-                cancelButtonText:'取消',
+            '提示', {
+                confirmButtonText: '确定',
+                cancelButtonText: '取消',
             }
-        ).then(()=>{
+        ).then(() => {
             console.log('确定');
-        }).catch(()=>{
+        }).catch(() => {
             console.log('取消');
         });
     };
 
     //2. 添加全局资源
-    Vue.directive('myDirective',{
-        bind(el,binding,vnode,oldVnode){//只调用一次，指令第一次绑定到元素时调用。
+    Vue.directive('myDirective', {
+        bind(el, binding, vnode, oldVnode) { //只调用一次，指令第一次绑定到元素时调用。
 
         },
-        inserted(el,binding,vnode,oldVnode){//被绑定元素插入父节点时调用
+        inserted(el, binding, vnode, oldVnode) { //被绑定元素插入父节点时调用
 
         },
-        update(el,binding,vnode,oldVnode){//所在组件的 VNode 更新时调用，但是可能发生在其子 VNode 更新之前。
+        update(el, binding, vnode, oldVnode) { //所在组件的 VNode 更新时调用，但是可能发生在其子 VNode 更新之前。
 
         },
-        componentUpdated(el,binding,vnode,oldVnode){//指令所在组件的 VNode 及其子 VNode 全部更新后调用。
+        componentUpdated(el, binding, vnode, oldVnode) { //指令所在组件的 VNode 及其子 VNode 全部更新后调用。
 
         },
-        unbind(el,binding,vnode,oldVnode){//只调用一次，指令与元素解绑时调用。
+        unbind(el, binding, vnode, oldVnode) { //只调用一次，指令与元素解绑时调用。
 
         },
     });
 
     //3. 注入组件
     Vue.mixin({
-        data(){
-            return{
+        data() {
+            return {
 
             }
         },
-        mounted(){
+        mounted() {
 
         },
-        methods:{
+        methods: {
 
         },
-        components:{
+        components: {
             header1,
             footer1,
         },
@@ -120,101 +117,106 @@ MyPlugin.install=function(Vue,options){
 Vue.use(MyPlugin);
 
 //挂载过滤器
-for(let attr in filter){
-    Vue.filter(attr,filter[attr]);
+for (let attr in filter) {
+    Vue.filter(attr, filter[attr]);
 }
 
 //路由对象
-const router=new VueRouter({
+const router = new VueRouter({
     // mode:'history',
     routes,
 });
 
 //路由改变之前显示loading
-router.beforeEach((to,from,next)=>{
+router.beforeEach((to, from, next) => {
     store.commit({
-        type:'UPDATE_LOADINGSTATUS',
-        isLoading:true,
+        type: 'UPDATE_LOADINGSTATUS',
+        isLoading: true,
     });
 
     //根据meta值改变title
-    if(to.meta&&to.meta.title)document.title=to.meta.title;
+    if (to.meta && to.meta.title) document.title = to.meta.title;
 
     next();
 });
 
 //路由改变之后隐藏loading
-router.afterEach((to,from)=>{
+router.afterEach((to, from) => {
     store.commit({
-        type:'UPDATE_LOADINGSTATUS',
-        isLoading:false,
+        type: 'UPDATE_LOADINGSTATUS',
+        isLoading: false,
     });
 
     //根据meta的传值执行不同操作
-    const metaHandle=()=>{
-        if(!to.meta.keepPos||to.query.goTop){//允许body滚动，并回到顶部
-            controlBodyScroll(false,true);
+    const metaHandle = () => {
+        if (!to.meta.keepPos || to.query.goTop) { //允许body滚动，并回到顶部
+            controlBodyScroll(false, true);
         }
     };
     metaHandle();
 
     //根据query的传值执行不同操作
-    const queryHandle=()=>{
+    const queryHandle = () => {
         //加上app样式
-        if(to.query.app){
+        if (to.query.app) {
             document.body.classList.add('app');
         }
         //存储地址传值
-        if(to.query.token){
-            lStore.set('token',to.query.token);
+        if (to.query.token) {
+            lStore.set('token', to.query.token);
         }
     };
     queryHandle();
 
     //根据地址传参计算状态栏高度
-    const computedStatusBarHeight=()=>{
-        let {app,statusBarHeight}=to.query;
+    const computedStatusBarHeight = () => {
+        let { app, statusBarHeight } = to.query;
 
-        app=app||lStore.get('app');
-        statusBarHeight=+(statusBarHeight||lStore.get('statusBarHeight'));
+        app = app || lStore.get('app');
+        statusBarHeight = +(statusBarHeight || lStore.get('statusBarHeight'));
 
-        Vue.prototype.statusBarHeight=app&&statusBarHeight?statusBarHeight:(app?20:0);
+        Vue.prototype.statusBarHeight = app && statusBarHeight ? statusBarHeight : (app ? 20 : 0);
     };
     computedStatusBarHeight();
 
     //暴露全局方法
-    const windowFn=()=>{
-        const fnJson={
-            goBack(pageIndex){//返回历史记录的方法
+    const windowFn = () => {
+        const fnJson = {
+            goBack(pageIndex) { //返回历史记录的方法
                 vm.$router.go(pageIndex);
             },
-            setLocalStorage(key,value){//setLocalStorage的方法
-                lStore.set(key,value);
+            setLocalStorage(key, value) { //setLocalStorage的方法
+                lStore.set(key, value);
             },
-            setSessionStorage(key,value){//setSessionStorage的方法
-                sStore.set(key,value);
+            setSessionStorage(key, value) { //setSessionStorage的方法
+                sStore.set(key, value);
             },
-            logout(){//logout方法
-                lStore.set('token','');
+            logout() { //logout方法
+                lStore.set('token', '');
             },
         };
 
-        for(let attr in fnJson){
-            window[attr]=fnJson[attr];
+        for (let attr in fnJson) {
+            window[attr] = fnJson[attr];
         }
     };
     windowFn();
 });
 
 //路由器会创建一个App示例，并且挂载到选择符#app匹配的元素上
-const vm=new Vue({
+const vm = new Vue({
     router,
     store,
 }).$mount('#app');
 
+//用来发送事件的vue实例
+const vmEvent = new Vue({
+    router,
+});
+
 //开发与线上模式控制台切换
-if(noNative){
-    consoleNull(['log','dir','info']);
+if (noNative) {
+    consoleNull(['log', 'dir', 'info']);
 }
 
 //rem根据屏幕变化
@@ -226,5 +228,3 @@ networkHandle();
 console.dir(vm);
 
 export default vmEvent;
-
-
